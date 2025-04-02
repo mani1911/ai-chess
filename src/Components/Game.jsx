@@ -1,14 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { Chessboard } from 'react-chessboard';
 import { Chess } from 'chess.js';
+import { getNextMove } from '../Helpers/Ai';
 
 const Game = () => {
   const [game, setGame] = useState(new Chess());
   const [boardState, setBoardState] = useState([]);
   const [gameOver, setGameOver] = useState(false);
   
-
   const [selectedSquare, setSelectedSquare] = useState('');
+
+  async function waitSeconds(sec) {
+    return new Promise(resolve => {
+      setTimeout(resolve, sec * 1000); 
+    });
+  }
   
   const getBoardState = (chessInstance) => {
     const board = [];
@@ -34,40 +40,75 @@ const Game = () => {
     return board;
   };
   
+  async function playAI () {
+    try {
+      do {
+        await waitSeconds(3);
+        const res = await getNextMove(getBoardState(game));
+
+        if(res === null) {await waitSeconds(10); continue;}
+        var s1 = res.substr(0, 2);
+        var s2 = res.substr(3, 2);
+      } while(!makeAMove(s1, s2));
+
+
+      // console.log(`${s1}, ${s2}`)
+      // while(!makeAMove(s1, s2)) makeAMove(s1, s2);
+
+      // console.log(game.turn())
+    } catch (error) {
+      console.log(error);
+    }
+  }
+  
   useEffect(() => {
     setBoardState(getBoardState(game));
+    
+    if(game.turn() === 'b') {
+      console.log("black tuen")
+      playAI();
+    } else {
+      console.log("white turn")
+    }
   }, [game]);
   
   function makeAMove(from, to) {
-    const gameCopy = new Chess(game.fen());
+    try {
+      const gameCopy = new Chess(game.fen());
   
-    const result = gameCopy.move({
-      from,
-      to,
-      promotion: 'q',
-    });
+      const result = gameCopy.move({
+        from,
+        to,
+        promotion: 'q',
+      });
+      
     
-  
-    if (result === null) return false;
-    
-    
-    setGame(gameCopy);
-    
-    if (gameCopy.isGameOver()) {
-      setGameOver(true);
-      if (gameCopy.isCheckmate()) {
-        alert(`Checkmate! ${gameCopy.turn() === 'w' ? 'Black' : 'White'} wins!`);
-      } else if (gameCopy.isDraw()) {
-        alert("Draw!");
+      if (result === null) return false;
+      
+      
+      setGame(gameCopy);
+      
+      if (gameCopy.isGameOver()) {
+        setGameOver(true);
+        if (gameCopy.isCheckmate()) {
+          alert(`Checkmate! ${gameCopy.turn() === 'w' ? 'Black' : 'White'} wins!`);
+        } else if (gameCopy.isDraw()) {
+          alert("Draw!");
+        }
       }
+      
+      return true;
     }
-    
-    return true;
+
+    catch (e) {
+      console.log(e);
+    }
+
+    return false;
+
   }
 
   function onSquareClick(square) {
-
-    console.log(boardState)
 
     const piece = game.get(square);
     
@@ -98,6 +139,7 @@ const Game = () => {
   }
   
   function resetGame() {
+    window.location.reload();
     const newGame = new Chess();
     setGame(newGame);
     setBoardState(getBoardState(newGame));
@@ -125,23 +167,9 @@ const Game = () => {
       };
     });
   }
-  
 
-  const renderBoardState = () => {
-    return (
-      <div className="mt-6 p-4 bg-gray-100 rounded overflow-auto max-h-64 w-full">
-        <h3 className="font-bold mb-2">Current Board State:</h3>
-        <pre className="text-xs">
-          {JSON.stringify(boardState, null, 2)}
-        </pre>
-      </div>
-    );
-  };
-  
   return (
     <div className="flex flex-col items-center mt-8">
-      <h1 className="text-2xl font-bold mb-4">React Chess Game</h1>
-      
       <div className="w-96 h-96">
         <Chessboard 
           position={game.fen()}
@@ -173,8 +201,6 @@ const Game = () => {
           </div>
         )}
       </div>
-      
-      {renderBoardState()}
     </div>
   );
 };
