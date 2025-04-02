@@ -2,6 +2,8 @@
 
 This is a simple chess game where player plays against an AI of his choice.
 
+[Video demo](https://drive.google.com/file/d/1rZMEecMuBHfOFbEUSdAlZpDOaF746H7Z/view)
+
 ## Tech Stack
 - React Js
 - Flask
