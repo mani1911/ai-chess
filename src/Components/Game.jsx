@@ -7,7 +7,7 @@ const Game = () => {
   const [game, setGame] = useState(new Chess());
   const [boardState, setBoardState] = useState([]);
   const [gameOver, setGameOver] = useState(false);
-  
+  const [model, setModel] = useState("gemini")
   const [selectedSquare, setSelectedSquare] = useState('');
 
   async function waitSeconds(sec) {
@@ -44,18 +44,13 @@ const Game = () => {
     try {
       do {
         await waitSeconds(3);
-        const res = await getNextMove(getBoardState(game));
+        const res = await getNextMove(getBoardState(game), model);
 
         if(res === null) {await waitSeconds(10); continue;}
         var s1 = res.substr(0, 2);
         var s2 = res.substr(3, 2);
       } while(!makeAMove(s1, s2));
 
-
-      // console.log(`${s1}, ${s2}`)
-      // while(!makeAMove(s1, s2)) makeAMove(s1, s2);
-
-      // console.log(game.turn())
     } catch (error) {
       console.log(error);
     }
@@ -168,6 +163,16 @@ const Game = () => {
     });
   }
 
+  const options = [
+    {
+      "label" : "Gemini",
+      "value" : "gemini"
+    }, {
+      "label" : "OpenAI",
+      "value" : "openai"
+    }
+  ]
+
   return (
     <div className="flex flex-col items-center mt-8">
       <div className="w-96 h-96">
@@ -184,6 +189,15 @@ const Game = () => {
       </div>
       
       <div className="mt-4 flex gap-4">
+
+      <select value={model} onChange={(e) => setModel(e.target.value)}>
+        {options.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+
         <button 
           onClick={resetGame}
           className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"

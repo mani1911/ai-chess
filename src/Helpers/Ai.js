@@ -1,6 +1,6 @@
 const BACKEND_URI = 'http://localhost:5000'
 
-export async function getNextMove(boardState) {
+export async function getNextMove(boardState, model) {
     try {
       const response = await fetch(`${BACKEND_URI}/generate`, { 
         method: 'POST',
@@ -9,6 +9,7 @@ export async function getNextMove(boardState) {
         },
         body: JSON.stringify({
           prompt: `given the board state make a move for black.. give source sqaure and destination square only..nothing else \n${JSON.stringify(boardState)}`, 
+          model : model
         }),
       });
   
